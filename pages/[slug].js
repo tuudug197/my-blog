@@ -1,27 +1,24 @@
-import React, { useEffect, useState} from 'react'
-import { useRouter } from 'next/router';
+import Head from "next/head"
 
-const Article = () => {
-    const [article, setArticle] = useState()
-    const router = useRouter()
-    const { slug } = router.query
-    useEffect(() => {
-        if(slug) {
-            fetch(`https://dev.to/api/articles/abbeyperini/${slug}`)
-            .then((res) => res.json())
-            .then((data) => setArticle(data))
-        }
-       
-    }, [slug])
-    console.log(article);
-    if(!article) {
-        return (
-            <div>loading</div>
-        )
-    }
+export default function Article({ article }) {
+    if(!article) return <div>loading</div>
 
     return (
-        <div dangerouslySetInnerHTML={{__html: article.body_html}} />
+        <>
+            <Head>
+                <meta property='og:title' content={article.title}/>
+                <meta property='og:description' content={article.description}/>
+                <meta property='og:image' content={article.social_image}/>
+            </Head>
+            <div dangerouslySetInnerHTML={{__html: article.body_html}} />
+        </>
+       
     )
 }
-export default Article
+
+export async function getServerSideProps({ params }) {
+    const { slug } = params
+    const result =  await fetch(`https://dev.to/api/articles/abbeyperini/${slug}`)
+    const data = await result.json()
+    return { props: { article : data }}
+}
